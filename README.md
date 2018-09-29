@@ -1,2 +1,2 @@
 # GeneticAlgorithm
-Small agent based javscript genetic algorithm
+Small agent based javascript genetic algorithm
