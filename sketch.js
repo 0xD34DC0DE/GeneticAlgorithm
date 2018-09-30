@@ -19,6 +19,8 @@ function setup() {
 
 	Agent.setSpawnPoint(h_w_width, w_height - 10);
 
+	Agent.setGoal(h_w_width, w_height - 100, 10);
+
 	for (var i = 0; i < agent_count; i++) {
 		agents.push(new Agent(100));
 	}
@@ -33,6 +35,9 @@ function draw() {
 	background(0);
 	stroke(255);
 	fill(255);
+
+
+	Agent.goal.draw();
 
 	for (var i = agents.length - 1; i >= 0; i--) {
 		agents[i].update();
@@ -129,17 +134,16 @@ class Goal
 {
 	constructor(x, y, radius)
 	{
-		this.x = x || 0;
-		this.y = y || 0;
+		this.pos = createVector(x || 0, y || 0);
 		this.radius = radius || 1;
 		this.color = [0, 0, 255]; // Blue
 	}
 
 	isCircleInside(x, y, radius)
 	{
-		let dx = this.x - x;
-		let dy = this.y - y;
-		let dr = this.radius - radius;
+		let dx = this.pos.x - x;
+		let dy = this.pos.y - y;
+		let dr = this.radius + radius;
 		return (dx * dx) + (dy * dy) < (dr * dr);
 	}
 
@@ -158,7 +162,7 @@ class Goal
 	draw()
 	{
 		fill(this.color);
-		ellispe(this.x, this.y, this.radius * 2, this.radius * 2);
+		ellipse(this.pos.x, this.pos.y, this.radius * 2, this.radius * 2);
 	}
 }
 
@@ -168,6 +172,7 @@ class Agent
 {
 	//Static variables
 	/*
+		Agent.goal
 		Agent.spawnPoint
 		Agent.agent_alive_count
 		Agent.agent_created_count;
@@ -198,6 +203,7 @@ class Agent
 		this.alive = true;
 		this.score = 0.0;
 		this.reached_goal = false;
+		this.radius = 10.0;
 
 
 		// Create static member variable if doesn't exist
@@ -235,6 +241,16 @@ class Agent
 		Agent.spawnPoint = createVector(x, y);
 	}
 
+	static setGoal(x, y, radius)
+	{
+		// Goal (doesn't change from agent to agent so we use static for performance)
+		Agent.goal = new Goal(x, y, radius);
+	}
+
+	hasReachedGoal()
+	{
+		return Agent.goal.isCircleInside(this.pos.x, this.pos.y, this.radius);
+	}
 
 	kill()
 	{
@@ -347,7 +363,7 @@ class Agent
 		{
 			fill(255,0,0); // Dead: fill red
 		}
-		ellipse(this.pos.x, this.pos.y, 10.0, 10.0);
+		ellipse(this.pos.x, this.pos.y, this.radius, this.radius);
 	}
 
 	copy()
@@ -372,6 +388,7 @@ class Agent
 
 	determineScore()
 	{
-
+		let goalDist = this.pos.dist(Agent.goal.pos);
+		this.score = 1.0 / (goalDist * goalDist);
 	}
 }
