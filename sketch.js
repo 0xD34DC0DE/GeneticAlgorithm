@@ -125,10 +125,54 @@ class Obstacle
 	}
 }
 
+class Goal
+{
+	constructor(x, y, radius)
+	{
+		this.x = x || 0;
+		this.y = y || 0;
+		this.radius = radius || 1;
+		this.color = [0, 0, 255]; // Blue
+	}
+
+	isCircleInside(x, y, radius)
+	{
+		let dx = this.x - x;
+		let dy = this.y - y;
+		let dr = this.radius - radius;
+		return (dx * dx) + (dy * dy) < (dr * dr);
+	}
+
+	setColor(r, g, b, a)
+	{
+		if(a)
+		{
+			this.color = [r, g, b, a];
+		}
+		else
+		{
+			this.color = [r, g, b];
+		}
+	}
+
+	draw()
+	{
+		fill(this.color);
+		ellispe(this.x, this.y, this.radius * 2, this.radius * 2);
+	}
+}
+
 
 
 class Agent
 {
+	//Static variables
+	/*
+		Agent.spawnPoint
+		Agent.agent_alive_count
+		Agent.agent_created_count;
+	*/
+
 	constructor(step_count)
 	{
 		if(Agent.spawnPoint !== undefined)
@@ -152,7 +196,8 @@ class Agent
 		this.acc = createVector(0.0, 0.0);
 		this.vel = createVector(0.0, 0.0);
 		this.alive = true;
-
+		this.score = 0.0;
+		this.reached_goal = false;
 
 
 		// Create static member variable if doesn't exist
@@ -228,6 +273,9 @@ class Agent
 
 		this.acc = createVector(0.0, 0.0);
 		this.vel = createVector(0.0, 0.0);
+
+		this.score = 0.0;
+		this.reached_goal = false;
 	}
 
 	is_outOffBound()
@@ -260,7 +308,7 @@ class Agent
 		}
 		else
 		{
-			throw "Agent.env_obstacles is not itinialised use Agent.setObstacles(obstacle_array) to set it";
+			throw "Agent.env_obstacles is not initialised use Agent.setObstacles(obstacle_array) to set it";
 		}
 	}
 
@@ -279,6 +327,10 @@ class Agent
 				this.kill();
 			}
 			if(this.is_insideObstacle())
+			{
+				this.kill();
+			}
+			if(this.hasReachedGoal())
 			{
 				this.kill();
 			}
@@ -316,5 +368,10 @@ class Agent
 		for (var i = 0; i < this.step_count; i++) {
 			this.steps[i] = p5.Vector.random2D()
 		}
+	}
+
+	determineScore()
+	{
+
 	}
 }
