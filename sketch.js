@@ -2,36 +2,43 @@ const w_width = 512;
 const w_height = 512;
 const h_w_width = w_width / 2.0;
 const h_w_height = w_height  / 2.0;
-let agents = new Array();
-let obstacles = new Array();
+let agents = [];
+let obstacles = [];
 
 const agent_count = 10;
 
 
 function setup() {
+	rectMode(CENTER); // Draws rectangle from the center instead of the top left corner
 	createCanvas(512, 512);
-	background(0);
 
 	obstacles.push(new Obstacle(w_width * 0.375, h_w_height - 50, w_width * 0.75, 25));
 	obstacles.push(new Obstacle(w_width * 0.625, h_w_height + 50, w_width * 0.75, 25));
 
-	Agent.set_obstacles(obstacles);
+	Agent.setObstacles(obstacles);
+
 	Agent.setSpawnPoint(h_w_width, w_height - 10);
+
 	for (var i = 0; i < agent_count; i++) {
 		agents.push(new Agent(100));
 	}
 
+	// Testing the agent copy function
+	/*for (var i = 0; i < 5; i++) {
+		agents.push(agents[0].copy());
+	}*/
 }
 
 function draw() {
-	rectMode(CENTER); // Draws rectangle from the center instead of the top left corner
 	background(0);
 	stroke(255);
 	fill(255);
+
 	for (var i = agents.length - 1; i >= 0; i--) {
 		agents[i].update();
 		agents[i].draw();
 	}
+
 	for (var i = obstacles.length - 1; i >= 0; i--) {
 		obstacles[i].draw();
 	}
@@ -40,6 +47,7 @@ function draw() {
 	{
 		for (var i = agents.length - 1; i >= 0; i--) {
 			agents[i].reset();
+			agents[i].randomizeSteps();
 		}
 	}
 }
@@ -99,8 +107,6 @@ class BoxShape
 	{
 		rect(this.x, this.y, this.width, this.height);
 	}
-
-
 }
 
 
@@ -166,13 +172,12 @@ class Agent
 		}
 	};
 
-
 	static allAgentDead()
 	{
 		return Agent.agent_alive_count == 0;
 	}
 
-	static set_obstacles(obstacles_array)
+	static setObstacles(obstacles_array)
 	{
 		// Environement obstacles (doesn't change from agent to agent so we use static for performance)
 		// Slice with argument 0 means a full copy is created (avoids reference)
@@ -212,6 +217,7 @@ class Agent
 
 		if(Agent.spawnPoint !== undefined)
 		{
+			// .copy() is needed so the agent gets its own vector object
 			this.pos = Agent.spawnPoint.copy();
 		}
 		else
@@ -254,7 +260,7 @@ class Agent
 		}
 		else
 		{
-			throw "Agent.env_obstacles is not itinialised use Agent.set_obstacles(obstacle_array) to set it";
+			throw "Agent.env_obstacles is not itinialised use Agent.setObstacles(obstacle_array) to set it";
 		}
 	}
 
@@ -290,5 +296,25 @@ class Agent
 			fill(255,0,0); // Dead: fill red
 		}
 		ellipse(this.pos.x, this.pos.y, 10.0, 10.0);
+	}
+
+	copy()
+	{
+		let newAgent = new Agent(this.step_count);
+		newAgent.setSteps(this.steps); // Copy this agent's steps to the new one
+		return newAgent;
+	}
+
+	setSteps(stepsArray)
+	{
+		// Slice(0) will basically create a deep copy of the array (independent)
+		this.steps = stepsArray.slice(0);
+	}
+
+	randomizeSteps()
+	{
+		for (var i = 0; i < this.step_count; i++) {
+			this.steps[i] = p5.Vector.random2D()
+		}
 	}
 }
